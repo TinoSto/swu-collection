@@ -143,17 +143,26 @@ export async function searchCards(query: string): Promise<SwuCard[]> {
   return extractCards(payload);
 }
 
-/** Alle offiziellen Haupt-Sets für Filter-Dropdowns (bereinigt um Promos/Events). */
+/** Nur die offiziellen Star Wars: Unlimited Haupt-Sets erlauben. */
 export async function getSets(): Promise<SwuSet[]> {
   const payload = await request<SwuSet[]>("/sets", undefined, 86_400);
   if (!payload) return [];
 
-  return payload.filter(
-    (set) =>
-      !set.fullName.toLowerCase().includes("promo") &&
-      !set.fullName.toLowerCase().includes("event") &&
-      !set.setId.toLowerCase().includes("pr")
-  );
+  const officialMainSets = [
+    "SOR", // Spark of Rebellion
+    "SHD", // Shadows of the Galaxy
+    "TWI", // Twilight of the Republic
+    "JTL", // Jump To Lightspeed
+    "LOF", // Legends of the Force
+    "LAW", // A Lawless Time
+    "SEC", // Secrets of Power
+    "ASH", // Ashes of the Empire
+    "HMW", // Homeworlds
+    "IBH", // Intro Battle: Hoth
+    "TS26", // Twin Suns 2026
+  ];
+
+  return payload.filter((set) => officialMainSets.includes(set.setId.toUpperCase()));
 }
 
 // ---------------------------------------------------------------------------
