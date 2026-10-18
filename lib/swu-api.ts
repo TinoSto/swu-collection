@@ -1,16 +1,10 @@
-/**
- * Wrapper für die SWU-DB API (https://www.swu-db.com/api)
- *
+/** Wrapper für die SWU-DB API (https://www.swu-db.com/api)
  * Endpunkte:
  *   GET /cards/{set}/{number}   -> einzelne Karte (Objekt)
  *   GET /cards/{set}            -> alle Karten eines Sets
  *   GET /cards/search?q=...     -> { total_cards, data: Card[] }
  *   GET /sets                   -> Set-Liste
- *
- * Hinweis: Standardmäßig liefert die Suche nur Basis-Printings
- * (keine Foil-/Hyperspace-/Showcase-Varianten).
  */
-
 const BASE_URL = (
   process.env.NEXT_PUBLIC_SWU_API_BASE ?? "https://api.swu-db.com"
 ).replace(/\/+$/, "");
@@ -86,13 +80,11 @@ async function request<T>(
   revalidateSeconds = 3600
 ): Promise<T | null> {
   const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-
   let res: Response;
   try {
     res = await fetch(`${BASE_URL}${path}${qs}`, {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      // Wird nur serverseitig ausgewertet (Next.js Data Cache), im Browser ignoriert.
       next: { revalidate: revalidateSeconds },
     });
   } catch {
@@ -151,10 +143,17 @@ export async function searchCards(query: string): Promise<SwuCard[]> {
   return extractCards(payload);
 }
 
-/** Alle Sets (für Filter-Dropdowns). */
+/** Alle offiziellen Haupt-Sets für Filter-Dropdowns (bereinigt um Promos/Events). */
 export async function getSets(): Promise<SwuSet[]> {
   const payload = await request<SwuSet[]>("/sets", undefined, 86_400);
-  return payload ?? [];
+  if (!payload) return [];
+
+  return payload.filter(
+    (set) =>
+      !set.fullName.toLowerCase().includes("promo") &&
+      !set.fullName.toLowerCase().includes("event") &&
+      !set.setId.toLowerCase().includes("pr")
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -170,11 +169,7 @@ export function parseCardReference(
   return m ? { set: m[1], number: m[2] } : null;
 }
 
-/**
- * Zentrale Suchfunktion für die Suchleiste.
- * Passt die Eingabe auf "Set Nummer" und existiert die Karte, kommt genau diese Karte.
- * Sonst (auch bei Fehlschlag, z. B. "darth 3") läuft die normale Suche.
- */
+/** Zentrale Suchfunktion für die Suchleiste. */
 export async function searchByInput(input: string): Promise<SwuCard[]> {
   const trimmed = input.trim();
   if (!trimmed) return [];
@@ -192,7 +187,6 @@ export async function searchByInput(input: string): Promise<SwuCard[]> {
 // Helfer
 // ---------------------------------------------------------------------------
 
-/** Stabiler Vergleichsschlüssel, unabhängig von Padding ("010" == "10"). */
 export function cardKey(set: string, number: string): string {
   return `${set.toUpperCase()}-${number.replace(/^0+(?=\d)/, "")}`;
 }
@@ -201,7 +195,6 @@ export function cardTitle(card: Pick<SwuCard, "Name" | "Subtitle">): string {
   return card.Subtitle ? `${card.Name} – ${card.Subtitle}` : card.Name;
 }
 
-/** Direkter Bild-Redirect der API, Fallback falls FrontArt fehlt. */
 export function cardImageUrl(
   set: string,
   number: string,
