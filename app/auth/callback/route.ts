@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
 
 /**
  * Ziel des Bestätigungslinks aus der Registrierungs-Mail.

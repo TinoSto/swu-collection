@@ -1,30 +1,25 @@
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+import { NavBar } from "@/components/NavBar-v2";
 import { redirect } from "next/navigation";
-import { Suspense, type ReactNode } from "react";
-import { NavBar } from "@/components/NavBar";
-import { createServerSupabase } from "@/lib/supabase-server";
 
-export default function AppLayout({ children }: { children: ReactNode }) {
-  // Die Session wird zur Request-Zeit gelesen und liegt deshalb hinter einer Suspense-Grenze.
-  return (
-    <Suspense fallback={<p className="p-6 text-sm text-zinc-500">Lade …</p>}>
-      <AuthGate>{children}</AuthGate>
-    </Suspense>
-  );
-}
-
-/** Zweite Absicherung neben dem Proxy: ohne gültige Session gibt es keinen Inhalt. */
-async function AuthGate({ children }: { children: ReactNode }) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <NavBar email={user.email ?? ""} />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
-    </>
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4">{children}</main>
+    </div>
   );
 }

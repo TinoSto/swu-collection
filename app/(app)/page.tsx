@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
 import { getCard, cardImageUrl, cardTitle, type SwuCard } from "@/lib/swu-api";
 import { adjustCardCountAction } from "./search/actions";
 

@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
 
 const MIN_PASSWORD_LENGTH = 8;
 

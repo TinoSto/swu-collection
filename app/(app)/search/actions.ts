@@ -1,6 +1,6 @@
 "use server";
 
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
 import { revalidatePath } from "next/cache";
 
 export async function adjustCardCountAction(

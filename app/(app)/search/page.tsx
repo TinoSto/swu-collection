@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { searchByInput, cardImageUrl, cardTitle, getSets, type SwuCard, type SwuSet } from "@/lib/swu-api";
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
 import { adjustCardCountAction } from "./actions";
 
 interface SearchPageProps {
