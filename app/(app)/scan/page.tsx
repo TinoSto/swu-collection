@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ScanClient } from "@/components/ScanClient";
+import { ScanClient } from "@/components/ScanClient-v3";
 
 export default function ScanPage() {
   return (
