@@ -1,0 +1,3246 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  (app)/
+    scan/
+      page.tsx
+    search/
+      actions.ts
+      page.tsx
+    layout.tsx
+    page.tsx
+  (auth)/
+    login/
+      page.tsx
+    register/
+      page.tsx
+  auth/
+    callback/
+      route.ts
+    actions.ts
+  favicon.ico
+  globals.css
+  layout.tsx
+  manifest.ts
+components/
+  AuthCard.tsx
+  CardTile.tsx
+  CollectionControls.tsx
+  NavBar-v2.tsx
+  NavLinks.tsx
+  ScanClient-v3.tsx
+  ScanClient-v4.tsx
+  ScanClient.tsx
+  SubmitButton.tsx
+lib/
+  auth-messages.ts
+  collection-actions.ts
+  collection-types.ts
+  collection.ts
+  ocr-engine-v2.ts
+  ocr-engine.ts
+  ocr-image.ts
+  ocr-parse.ts
+  scan-actions-v3.ts
+  scan-actions-v4.ts
+  scan-actions.ts
+  supabase-env.ts
+  supabase-proxy.ts
+  supabase-server-v2.ts
+  supabase.ts
+  swu-api.ts
+public/
+  file.svg
+  globe.svg
+  next.svg
+  vercel.svg
+  window.svg
+scripts/
+  copy-tesseract-assets-v2.mjs
+.gitignore
+AGENTS.md
+eslint.config.mjs
+next.config.ts
+package.json
+proxy.ts
+README.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/(auth)/login/page.tsx">
+import Link from "next/link";
+import { Suspense } from "react";
+import { login } from "@/app/auth/actions";
+import { AuthCard, Field, FormMessage } from "@/components/AuthCard";
+import { SubmitButton } from "@/components/SubmitButton";
+import { AUTH_ERRORS, AUTH_INFOS } from "@/lib/auth-messages";
+
+type SearchParams = Promise<{
+  error?: string | string[];
+  message?: string | string[];
+  next?: string | string[];
+}>;
+
+export default function LoginPage({ searchParams }: { searchParams: SearchParams }) {
+  return (
+    <AuthCard
+      title="Anmelden"
+      footer={
+        <>
+          Noch kein Konto?{" "}
+          <Link href="/register" className="font-medium underline underline-offset-2">
+            Konto erstellen
+          </Link>
+        </>
+      }
+    >
+      {/* searchParams sind Request-Daten und müssen hinter einer Suspense-Grenze gelesen werden. */}
+      <Suspense fallback={null}>
+        <LoginForm searchParams={searchParams} />
+      </Suspense>
+    </AuthCard>
+  );
+}
+
+async function LoginForm({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+  const errorKey = typeof params.error === "string" ? params.error : undefined;
+  const messageKey = typeof params.message === "string" ? params.message : undefined;
+  const next = typeof params.next === "string" ? params.next : "/";
+
+  return (
+    <>
+      {errorKey && (
+        <FormMessage kind="error">{AUTH_ERRORS[errorKey] ?? AUTH_ERRORS.unknown}</FormMessage>
+      )}
+      {messageKey && AUTH_INFOS[messageKey] && (
+        <FormMessage kind="info">{AUTH_INFOS[messageKey]}</FormMessage>
+      )}
+
+      <form action={login} className="space-y-4">
+        <input type="hidden" name="next" value={next} />
+        <Field label="E-Mail" name="email" type="email" autoComplete="email" />
+        <Field label="Passwort" name="password" type="password" autoComplete="current-password" />
+        <SubmitButton pendingText="Anmelden …">Anmelden</SubmitButton>
+      </form>
+    </>
+  );
+}
+</file>
+
+<file path="app/(auth)/register/page.tsx">
+import Link from "next/link";
+import { Suspense } from "react";
+import { register } from "@/app/auth/actions";
+import { AuthCard, Field, FormMessage } from "@/components/AuthCard";
+import { SubmitButton } from "@/components/SubmitButton";
+import { AUTH_ERRORS } from "@/lib/auth-messages";
+
+type SearchParams = Promise<{ error?: string | string[] }>;
+
+export default function RegisterPage({ searchParams }: { searchParams: SearchParams }) {
+  return (
+    <AuthCard
+      title="Konto erstellen"
+      footer={
+        <>
+          Bereits registriert?{" "}
+          <Link href="/login" className="font-medium underline underline-offset-2">
+            Anmelden
+          </Link>
+        </>
+      }
+    >
+      <Suspense fallback={null}>
+        <RegisterForm searchParams={searchParams} />
+      </Suspense>
+    </AuthCard>
+  );
+}
+
+async function RegisterForm({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+  const errorKey = typeof params.error === "string" ? params.error : undefined;
+
+  return (
+    <>
+      {errorKey && (
+        <FormMessage kind="error">{AUTH_ERRORS[errorKey] ?? AUTH_ERRORS.unknown}</FormMessage>
+      )}
+
+      <form action={register} className="space-y-4">
+        <Field label="E-Mail" name="email" type="email" autoComplete="email" />
+        <Field
+          label="Passwort (mindestens 8 Zeichen)"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+        />
+        <Field
+          label="Passwort wiederholen"
+          name="confirm"
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+        />
+        <SubmitButton pendingText="Konto wird erstellt …">Konto erstellen</SubmitButton>
+      </form>
+    </>
+  );
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "SWU Sammlung",
+  description: "Verwaltung der Star-Wars-Unlimited-Kartensammlung",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html
+      lang="de"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  );
+}
+</file>
+
+<file path="app/manifest.ts">
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "SWU Sammlung Manager",
+    short_name: "SWU Sammlung",
+    description: "Verwaltung deiner Star Wars: Unlimited Kartensammlung",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#000000",
+    theme_color: "#000000",
+    icons: [
+      {
+        src: "https://cdn.swu-db.com/images/cards/SOR/010.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "https://cdn.swu-db.com/images/cards/SOR/010.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+  };
+}
+</file>
+
+<file path="components/AuthCard.tsx">
+import type { ReactNode } from "react";
+
+export const inputClass =
+  "w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2.5 text-base outline-none focus-visible:border-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-900/20 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:focus-visible:ring-zinc-100/20";
+
+export function AuthCard({
+  title,
+  children,
+  footer,
+}: {
+  title: string;
+  children: ReactNode;
+  footer: ReactNode;
+}) {
+  return (
+    <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-4 py-10">
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight">{title}</h1>
+      {children}
+      <p className="mt-6 text-sm text-zinc-600 dark:text-zinc-400">{footer}</p>
+    </main>
+  );
+}
+
+export function FormMessage({
+  kind,
+  children,
+}: {
+  kind: "error" | "info";
+  children: ReactNode;
+}) {
+  const tone =
+    kind === "error"
+      ? "border-red-300 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100"
+      : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100";
+
+  return (
+    <p
+      role={kind === "error" ? "alert" : "status"}
+      className={`mb-4 rounded-lg border px-3 py-2 text-sm ${tone}`}
+    >
+      {children}
+    </p>
+  );
+}
+
+export function Field({
+  label,
+  name,
+  type,
+  autoComplete,
+  minLength,
+}: {
+  label: string;
+  name: string;
+  type: "email" | "password";
+  autoComplete: string;
+  minLength?: number;
+}) {
+  return (
+    <div>
+      <label htmlFor={name} className="mb-1 block text-sm font-medium">
+        {label}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        required
+        autoComplete={autoComplete}
+        minLength={minLength}
+        className={inputClass}
+      />
+    </div>
+  );
+}
+</file>
+
+<file path="components/CardTile.tsx">
+import { CollectionControls } from "@/components/CollectionControls";
+import type { OwnedCounts } from "@/lib/collection-types";
+import { cardImageUrl, cardTitle, type SwuCard } from "@/lib/swu-api";
+
+export function CardTile({ card, owned }: { card: SwuCard; owned: OwnedCounts }) {
+  const landscape = card.Type === "Leader" || card.Type === "Base";
+  const title = cardTitle(card);
+  const alt = `${title}, ${card.Set} ${card.Number}`;
+
+  return (
+    <article className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+      <div
+        className={`relative w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 ${
+          landscape ? "aspect-[7/5]" : "aspect-[5/7]"
+        }`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={cardImageUrl(card.Set, card.Number)}
+          alt={alt}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+      </div>
+      <div className="min-w-0">
+        <h2 className="text-sm font-semibold leading-snug">{card.Name}</h2>
+        {card.Subtitle && (
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{card.Subtitle}</p>
+        )}
+        <p className="mt-1 text-xs text-zinc-500">
+          {card.Set} {card.Number}
+        </p>
+        <p className="text-xs text-zinc-500">
+          {card.Type}, {card.Rarity}
+        </p>
+      </div>
+      <CollectionControls set={card.Set} number={card.Number} initial={owned} />
+    </article>
+  );
+}
+</file>
+
+<file path="components/CollectionControls.tsx">
+"use client";
+
+import { useRef, useState } from "react";
+import type { OwnedCounts } from "@/lib/collection-types";
+import { adjustCardCount } from "@/lib/collection-actions";
+
+type Kind = "normal" | "foil";
+
+const STEP_BUTTON =
+  "flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-300 text-xl leading-none transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:hover:bg-zinc-900 dark:focus-visible:outline-zinc-100";
+
+export function CollectionControls({
+  set,
+  number,
+  initial,
+}: {
+  set: string;
+  number: string;
+  initial: OwnedCounts;
+}) {
+  const [counts, setCounts] = useState<OwnedCounts>(initial);
+  const [error, setError] = useState<string | null>(null);
+  const confirmed = useRef<OwnedCounts>(initial);
+  const inFlight = useRef(0);
+
+  async function adjust(kind: Kind, delta: 1 | -1) {
+    setError(null);
+    setCounts((c) => ({ ...c, [kind]: Math.max(0, c[kind] + delta) }));
+    inFlight.current += 1;
+    let failure: string | null = null;
+    try {
+      const result = await adjustCardCount({
+        set,
+        number,
+        deltaNormal: kind === "normal" ? delta : 0,
+        deltaFoil: kind === "foil" ? delta : 0,
+      });
+      if (result.ok) {
+        confirmed.current = { normal: result.normal, foil: result.foil };
+      } else {
+        failure = result.error;
+      }
+    } catch {
+      failure = "Verbindung fehlgeschlagen.";
+    }
+    inFlight.current -= 1;
+    if (failure) setError(failure);
+    if (inFlight.current === 0) setCounts(confirmed.current);
+  }
+
+  return (
+    <div className="space-y-3">
+      <Stepper
+        label="Normal"
+        value={counts.normal}
+        onMinus={() => void adjust("normal", -1)}
+        onPlus={() => void adjust("normal", 1)}
+      />
+      <Stepper
+        label="Foil"
+        value={counts.foil}
+        onMinus={() => void adjust("foil", -1)}
+        onPlus={() => void adjust("foil", 1)}
+      />
+      {error && (
+        <p role="alert" className="text-xs text-red-700 dark:text-red-300">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Stepper({
+  label,
+  value,
+  onMinus,
+  onPlus,
+}: {
+  label: string;
+  value: number;
+  onMinus: () => void;
+  onPlus: () => void;
+}) {
+  return (
+    <div>
+      <p className="mb-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onMinus}
+          disabled={value === 0}
+          className={STEP_BUTTON}
+          aria-label={`${label} entfernen`}
+        >
+          −
+        </button>
+        <output
+          aria-live="polite"
+          className="min-w-8 text-center text-lg font-semibold tabular-nums"
+        >
+          {value}
+        </output>
+        <button
+          type="button"
+          onClick={onPlus}
+          className={STEP_BUTTON}
+          aria-label={`${label} hinzufügen`}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="components/NavBar-v2.tsx">
+import { logout } from "@/app/auth/actions";
+import { NavLinks } from "@/components/NavLinks";
+
+export function NavBar({ email }: { email: string }) {
+  return (
+    <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
+      <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-3 px-4">
+        <span className="hidden font-semibold tracking-tight sm:inline">SWU Sammlung</span>
+        <NavLinks />
+        <span className="hidden max-w-48 truncate text-sm text-zinc-500 md:block" title={email}>
+          {email}
+        </span>
+        <form action={logout}>
+          <button
+            type="submit"
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+          >
+            Abmelden
+          </button>
+        </form>
+      </div>
+    </header>
+  );
+}
+</file>
+
+<file path="components/NavLinks.tsx">
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const NAV_ITEMS = [
+  { href: "/", label: "Sammlung" },
+  { href: "/search", label: "Suche" },
+  { href: "/scan", label: "Scan" },
+];
+
+export function NavLinks() {
+  const pathname = usePathname();
+  return (
+    <nav aria-label="Hauptnavigation" className="flex flex-1 items-center gap-1 text-sm">
+      {NAV_ITEMS.map((item) => {
+        const active =
+          item.href === "/"
+            ? pathname === "/"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`rounded-md px-2.5 py-1.5 transition-colors ${
+              active
+                ? "bg-zinc-900 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "hover:bg-zinc-100 dark:hover:bg-zinc-900"
+            }`}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+</file>
+
+<file path="components/ScanClient-v3.tsx">
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { recognizeCanvas, warmUpOcr } from "@/lib/ocr-engine-v2";
+import {
+  buildCameraPasses,
+  buildUploadPasses,
+  containerRectToVideoRect,
+  loadImageSource,
+} from "@/lib/ocr-image";
+import { resolveScanRawText } from "@/lib/scan-actions-v3";
+import { CardTile } from "@/components/CardTile";
+import type { OwnedCounts } from "@/lib/collection-types";
+import type { SwuCard } from "@/lib/swu-api";
+
+export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts> }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const [scanning, setScanning] = useState(false);
+  const [statusText, setStatusText] = useState("");
+  const [debugText, setDebugText] = useState("");
+  const [foundCard, setFoundCard] = useState<{ card: SwuCard; owned: OwnedCounts } | null>(null);
+  const [manualInput, setManualInput] = useState("");
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    warmUpOcr();
+    navigator.mediaDevices?.getUserMedia?.({
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    })
+      .then((s) => {
+        stream = s;
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          videoRef.current.play();
+        }
+      })
+      .catch(() => setStatusText("Kamera nicht verfügbar. Nutze Datei-Upload."));
+    return () => {
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  const handleScan = useCallback(async () => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    const overlay = overlayRef.current;
+    if (!video || !container || !overlay || !video.videoWidth) return;
+    setScanning(true);
+    setDebugText("");
+    setStatusText("Analysiere Bild...");
+    try {
+      const region = containerRectToVideoRect(
+        { width: container.clientWidth, height: container.clientHeight },
+        { width: video.videoWidth, height: video.videoHeight },
+        {
+          x: overlay.offsetLeft,
+          y: overlay.offsetTop,
+          width: overlay.offsetWidth,
+          height: overlay.offsetHeight,
+        }
+      );
+      setDebugText(
+        `Video ${video.videoWidth}x${video.videoHeight}, Region ${Math.round(region.width)}x${Math.round(region.height)}\n`
+      );
+      const passes = buildCameraPasses(video, region);
+
+      let cardFound = false;
+      for (const pass of passes) {
+        const text = await recognizeCanvas(pass.canvas);
+        const compact = text.trim().split(/\s+/).join(" ");
+        setDebugText((prev) => `${prev}[${pass.label}] ${compact}\n`);
+        const res = await resolveScanRawText(text);
+        if (res.success && res.card) {
+          const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
+          setFoundCard({ card: res.card, owned: ownedMap[key] || { normal: 0, foil: 0 } });
+          if (res.candidate) {
+            setDebugText(
+              (prev) =>
+                `${prev}=> ${res.candidate!.set} ${res.candidate!.number} (Score ${res.candidate!.score.toFixed(1)})\n`
+            );
+          }
+          setStatusText("");
+          cardFound = true;
+          break;
+        }
+      }
+      if (!cardFound) {
+        setStatusText("Keine sichere Erkennung. Versuche es erneut.");
+      }
+    } catch {
+      setStatusText("Fehler beim Scannen.");
+    } finally {
+      setScanning(false);
+    }
+  }, [ownedMap]);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScanning(true);
+    setDebugText("");
+    setStatusText("Lese Foto...");
+    try {
+      const loaded = await loadImageSource(file);
+      const passes = buildUploadPasses(loaded.source, loaded.width, loaded.height);
+      loaded.dispose();
+
+      let cardFound = false;
+      for (const pass of passes) {
+        const text = await recognizeCanvas(pass.canvas);
+        const compact = text.trim().split(/\s+/).join(" ");
+        setDebugText((prev) => `${prev}[${pass.label}] ${compact}\n`);
+        const res = await resolveScanRawText(text);
+        if (res.success && res.card) {
+          const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
+          setFoundCard({ card: res.card, owned: ownedMap[key] || { normal: 0, foil: 0 } });
+          setStatusText("");
+          cardFound = true;
+          break;
+        }
+      }
+      if (!cardFound) setStatusText("Karte im Foto nicht sicher erkannt.");
+    } catch {
+      setStatusText("Fehler beim Verarbeiten des Fotos.");
+    } finally {
+      setScanning(false);
+    }
+  }
+
+  async function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!manualInput.trim()) return;
+    setScanning(true);
+    const res = await resolveScanRawText(manualInput);
+    setScanning(false);
+    if (res.success && res.card) {
+      const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
+      setFoundCard({ card: res.card, owned: ownedMap[key] || { normal: 0, foil: 0 } });
+      setStatusText("");
+    } else {
+      setStatusText("Karte nicht gefunden.");
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div
+        ref={containerRef}
+        className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-black"
+      >
+        <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+        <div
+          ref={overlayRef}
+          className="absolute inset-x-2 bottom-3 h-16 rounded-lg border-2 border-dashed border-white/70 pointer-events-none flex items-start justify-center"
+        >
+          <span className="mt-1 text-xs text-white/80 bg-black/50 px-2 py-0.5 rounded">
+            Fußzeile (Set + Nummer) hier einpassen
+          </span>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={handleScan}
+          disabled={scanning}
+          className="flex-1 rounded-lg bg-zinc-900 py-3 text-white font-medium hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          {scanning ? "Scan läuft..." : "Karte scannen"}
+        </button>
+        <label className="flex-1 cursor-pointer rounded-lg border border-zinc-300 py-3 text-center font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+          Foto hochladen
+          <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+        </label>
+      </div>
+
+      <form onSubmit={handleManualSubmit} className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Manuell, z.B. SOR 10"
+          value={manualInput}
+          onChange={(e) => setManualInput(e.target.value)}
+          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        />
+        <button type="submit" className="rounded-lg bg-zinc-800 px-4 py-2 text-sm text-white dark:bg-zinc-200 dark:text-zinc-900">
+          Suchen
+        </button>
+      </form>
+
+      {statusText && <p className="text-sm text-zinc-600 dark:text-zinc-400">{statusText}</p>}
+
+      {debugText && (
+        <pre className="whitespace-pre-wrap break-words text-xs text-zinc-500">{debugText}</pre>
+      )}
+
+      {foundCard && (
+        <div className="mt-6 border-t pt-4">
+          <h3 className="mb-2 text-sm font-semibold">Gefundene Karte:</h3>
+          <CardTile card={foundCard.card} owned={foundCard.owned} />
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="components/ScanClient-v4.tsx">
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { recognizeCanvas, warmUpOcr } from "@/lib/ocr-engine-v2";
+import {
+  buildCameraPasses,
+  buildUploadPasses,
+  containerRectToVideoRect,
+  loadImageSource,
+} from "@/lib/ocr-image";
+import { extractReferenceCandidates, type ReferenceCandidate } from "@/lib/ocr-parse";
+import { lookupCard } from "@/lib/scan-actions-v4";
+import { CardTile } from "@/components/CardTile";
+import type { OwnedCounts } from "@/lib/collection-types";
+import type { SwuCard } from "@/lib/swu-api";
+
+const KNOWN_SETS = ["SOR", "SHD", "TWI", "JTL", "LOF", "LAW", "SEC", "ASH", "HMW", "IBH", "TS26"];
+const MIN_SCORE = 3;
+const MAX_FRAMES = 3;
+
+type Vote = { cand: ReferenceCandidate; total: number; hits: number };
+
+function bestCandidate(text: string): ReferenceCandidate | null {
+  const list = extractReferenceCandidates(text, KNOWN_SETS).filter((c) => c.score >= MIN_SCORE);
+  return list[0] ?? null;
+}
+
+function addVote(votes: Map<string, Vote>, cand: ReferenceCandidate) {
+  const key = `${cand.set}|${cand.number}`;
+  const v = votes.get(key);
+  if (v) {
+    v.total += cand.score;
+    v.hits += 1;
+  } else {
+    votes.set(key, { cand, total: cand.score, hits: 1 });
+  }
+}
+
+function topVote(votes: Map<string, Vote>): Vote | null {
+  let best: Vote | null = null;
+  for (const v of votes.values()) {
+    if (!best || v.hits > best.hits || (v.hits === best.hits && v.total > best.total)) {
+      best = v;
+    }
+  }
+  return best;
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts> }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const [scanning, setScanning] = useState(false);
+  const [statusText, setStatusText] = useState("");
+  const [debugText, setDebugText] = useState("");
+  const [foundCard, setFoundCard] = useState<{ card: SwuCard; owned: OwnedCounts } | null>(null);
+  const [detected, setDetected] = useState<{ set: string; number: string } | null>(null);
+  const [correction, setCorrection] = useState("");
+  const [manualInput, setManualInput] = useState("");
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    let cancelled = false;
+    warmUpOcr();
+    navigator.mediaDevices?.getUserMedia?.({
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    })
+      .then(async (s) => {
+        if (cancelled) {
+          s.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        stream = s;
+        try {
+          await s.getVideoTracks()[0]?.applyConstraints({
+            advanced: [{ focusMode: "continuous" } as unknown as MediaTrackConstraintSet],
+          });
+        } catch {
+          // Dauerfokus nicht unterstützt: ignorieren
+        }
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          videoRef.current.play();
+        }
+      })
+      .catch(() => setStatusText("Kamera nicht verfügbar. Nutze Datei-Upload."));
+    return () => {
+      cancelled = true;
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  const showCard = useCallback(
+    async (set: string, number: string): Promise<boolean> => {
+      const card = await lookupCard(set, number);
+      if (!card) {
+        setFoundCard(null);
+        setStatusText(`Karte ${set} ${number} nicht gefunden.`);
+        return false;
+      }
+      const key = `${card.Set}-${card.Number}`.toUpperCase();
+      setFoundCard({ card, owned: ownedMap[key] || { normal: 0, foil: 0 } });
+      setDetected({ set, number });
+      setCorrection(number);
+      setStatusText("");
+      return true;
+    },
+    [ownedMap]
+  );
+
+  const handleScan = useCallback(async () => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    const overlay = overlayRef.current;
+    if (!video || !container || !overlay || !video.videoWidth) return;
+    setScanning(true);
+    setDebugText("");
+    setFoundCard(null);
+    setDetected(null);
+    setStatusText("Analysiere Bild...");
+    try {
+      const region = containerRectToVideoRect(
+        { width: container.clientWidth, height: container.clientHeight },
+        { width: video.videoWidth, height: video.videoHeight },
+        {
+          x: overlay.offsetLeft,
+          y: overlay.offsetTop,
+          width: overlay.offsetWidth,
+          height: overlay.offsetHeight,
+        }
+      );
+      setDebugText(
+        `Video ${video.videoWidth}x${video.videoHeight}, Region ${Math.round(region.width)}x${Math.round(region.height)}\n`
+      );
+
+      const votes = new Map<string, Vote>();
+      for (let frame = 1; frame <= MAX_FRAMES; frame++) {
+        const passes = buildCameraPasses(video, region);
+        for (const pass of passes) {
+          const text = await recognizeCanvas(pass.canvas);
+          const compact = text.trim().split(/\s+/).join(" ");
+          const cand = bestCandidate(text);
+          setDebugText(
+            (prev) =>
+              `${prev}#${frame} [${pass.label}] ${compact}${
+                cand ? ` => ${cand.set} ${cand.number} (${cand.score.toFixed(1)})` : ""
+              }\n`
+          );
+          if (cand) {
+            addVote(votes, cand);
+            break;
+          }
+        }
+        const leader = topVote(votes);
+        if (leader && leader.hits >= 2) break;
+        if (frame < MAX_FRAMES) await sleep(300);
+      }
+
+      const winner = topVote(votes);
+      if (!winner) {
+        setStatusText("Keine sichere Erkennung. Versuche es erneut.");
+        return;
+      }
+      await showCard(winner.cand.set, winner.cand.number);
+    } catch {
+      setStatusText("Fehler beim Scannen.");
+    } finally {
+      setScanning(false);
+    }
+  }, [showCard]);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScanning(true);
+    setDebugText("");
+    setFoundCard(null);
+    setDetected(null);
+    setStatusText("Lese Foto...");
+    try {
+      const loaded = await loadImageSource(file);
+      const passes = buildUploadPasses(loaded.source, loaded.width, loaded.height);
+      loaded.dispose();
+
+      let found: ReferenceCandidate | null = null;
+      for (const pass of passes) {
+        const text = await recognizeCanvas(pass.canvas);
+        const compact = text.trim().split(/\s+/).join(" ");
+        const cand = bestCandidate(text);
+        setDebugText(
+          (prev) =>
+            `${prev}[${pass.label}] ${compact}${
+              cand ? ` => ${cand.set} ${cand.number} (${cand.score.toFixed(1)})` : ""
+            }\n`
+        );
+        if (cand) {
+          found = cand;
+          break;
+        }
+      }
+      if (!found) {
+        setStatusText("Karte im Foto nicht sicher erkannt.");
+        return;
+      }
+      await showCard(found.set, found.number);
+    } catch {
+      setStatusText("Fehler beim Verarbeiten des Fotos.");
+    } finally {
+      setScanning(false);
+    }
+  }
+
+  async function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!manualInput.trim()) return;
+    const cand = bestCandidate(manualInput);
+    if (!cand) {
+      setStatusText("Eingabe nicht verstanden, z.B. ASH 80.");
+      return;
+    }
+    setScanning(true);
+    await showCard(cand.set, cand.number);
+    setScanning(false);
+  }
+
+  async function handleCorrection(e: React.FormEvent) {
+    e.preventDefault();
+    const digits = correction.replace(/\D/g, "");
+    if (!detected || !digits) return;
+    setScanning(true);
+    await showCard(detected.set, String(parseInt(digits, 10)));
+    setScanning(false);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div
+        ref={containerRef}
+        className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-black"
+      >
+        <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+        <div
+          ref={overlayRef}
+          className="absolute inset-x-2 bottom-3 h-16 rounded-lg border-2 border-dashed border-white/70 pointer-events-none"
+        />
+      </div>
+      <p className="text-xs text-zinc-500">
+        Fußzeile mit Set und Nummer in den Rahmen legen, Karte ruhig halten, bis das Bild
+        scharf ist, dann scannen.
+      </p>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={handleScan}
+          disabled={scanning}
+          className="flex-1 rounded-lg bg-zinc-900 py-3 text-white font-medium hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          {scanning ? "Scan läuft..." : "Karte scannen"}
+        </button>
+        <label className="flex-1 cursor-pointer rounded-lg border border-zinc-300 py-3 text-center font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+          Foto hochladen
+          <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+        </label>
+      </div>
+
+      <form onSubmit={handleManualSubmit} className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Manuell, z.B. SOR 10"
+          value={manualInput}
+          onChange={(e) => setManualInput(e.target.value)}
+          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        />
+        <button type="submit" className="rounded-lg bg-zinc-800 px-4 py-2 text-sm text-white dark:bg-zinc-200 dark:text-zinc-900">
+          Suchen
+        </button>
+      </form>
+
+      {statusText && <p className="text-sm text-zinc-600 dark:text-zinc-400">{statusText}</p>}
+
+      {detected && (
+        <form onSubmit={handleCorrection} className="flex items-center gap-2 text-sm">
+          <span>
+            Gelesen: <strong>{detected.set}</strong>
+          </span>
+          <input
+            inputMode="numeric"
+            aria-label="Kartennummer"
+            value={correction}
+            onChange={(e) => setCorrection(e.target.value)}
+            className="w-20 rounded-lg border border-zinc-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+          <button
+            type="submit"
+            disabled={scanning}
+            className="rounded-lg border border-zinc-300 px-3 py-1 dark:border-zinc-700"
+          >
+            Nummer laden
+          </button>
+        </form>
+      )}
+
+      {debugText && (
+        <pre className="whitespace-pre-wrap break-words text-xs text-zinc-500">{debugText}</pre>
+      )}
+
+      {foundCard && (
+        <div className="mt-6 border-t pt-4">
+          <h3 className="mb-2 text-sm font-semibold">Gefundene Karte:</h3>
+          <CardTile card={foundCard.card} owned={foundCard.owned} />
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="components/SubmitButton.tsx">
+"use client";
+
+import type { ReactNode } from "react";
+import { useFormStatus } from "react-dom";
+
+const PRIMARY =
+  "w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 dark:focus-visible:outline-zinc-100";
+
+export function SubmitButton({
+  children,
+  pendingText,
+  className = PRIMARY,
+}: {
+  children: ReactNode;
+  pendingText: string;
+  className?: string;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button type="submit" disabled={pending} className={className}>
+      {pending ? pendingText : children}
+    </button>
+  );
+}
+</file>
+
+<file path="lib/auth-messages.ts">
+/** Fehlermeldungen, adressiert über ?error=<key> in der URL. */
+export const AUTH_ERRORS: Record<string, string> = {
+  missing_fields: "Bitte E-Mail und Passwort ausfüllen.",
+  password_short: "Das Passwort braucht mindestens 8 Zeichen.",
+  password_mismatch: "Die beiden Passwörter stimmen nicht überein.",
+  invalid_credentials: "E-Mail oder Passwort ist falsch.",
+  email_not_confirmed:
+    "Diese E-Mail-Adresse ist noch nicht bestätigt. Öffne den Link in der Bestätigungsmail.",
+  user_exists: "Zu dieser E-Mail-Adresse gibt es bereits ein Konto. Melde dich an.",
+  weak_password: "Das Passwort ist zu schwach. Wähle ein längeres oder weniger häufiges Passwort.",
+  rate_limited: "Zu viele Versuche. Warte kurz und probiere es erneut.",
+  callback_failed:
+    "Der Bestätigungslink ist ungültig oder abgelaufen. Melde dich an oder registriere dich erneut.",
+  unknown: "Das hat nicht geklappt. Versuche es erneut.",
+};
+
+/** Hinweise, adressiert über ?message=<key> in der URL. */
+export const AUTH_INFOS: Record<string, string> = {
+  confirm_email:
+    "Konto angelegt. Bestätige deine E-Mail-Adresse über den Link in der Mail und melde dich danach an.",
+};
+</file>
+
+<file path="lib/collection-actions.ts">
+"use server";
+
+import { revalidatePath } from "next/cache";
+import type { UserCard } from "@/lib/supabase";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+
+export type AdjustResult =
+  | { ok: true; normal: number; foil: number }
+  | { ok: false; error: string };
+
+const SET_RE = /^[A-Za-z0-9]{2,8}$/;
+const NUMBER_RE = /^[A-Za-z0-9-]{1,12}$/;
+
+function isDelta(value: unknown): value is -1 | 0 | 1 {
+  return value === -1 || value === 0 || value === 1;
+}
+
+export async function adjustCardCount(input: {
+  set: string;
+  number: string;
+  deltaNormal: number;
+  deltaFoil: number;
+}): Promise<AdjustResult> {
+  const { set, number, deltaNormal, deltaFoil } = input ?? {};
+  if (
+    typeof set !== "string" ||
+    typeof number !== "string" ||
+    !SET_RE.test(set) ||
+    !NUMBER_RE.test(number) ||
+    !isDelta(deltaNormal) ||
+    !isDelta(deltaFoil) ||
+    (deltaNormal === 0 && deltaFoil === 0)
+  ) {
+    return { ok: false, error: "Ungültige Eingabe." };
+  }
+  const supabase = await createServerSupabase();
+  const { data, error } = await supabase.rpc("adjust_card_count", {
+    p_set_code: set.toUpperCase(),
+    p_card_number: number,
+    p_delta_normal: deltaNormal,
+    p_delta_foil: deltaFoil,
+  });
+  if (error) {
+    const sessionLost =
+      error.code === "42501" || error.message.includes("not authenticated");
+    return {
+      ok: false,
+      error: sessionLost
+        ? "Sitzung abgelaufen. Bitte neu anmelden."
+        : "Die Sammlung konnte nicht aktualisiert werden.",
+    };
+  }
+  const row = (Array.isArray(data) ? data[0] : data) as UserCard | null | undefined;
+  if (!row) {
+    return { ok: false, error: "Die Sammlung konnte nicht aktualisiert werden." };
+  }
+  revalidatePath("/");
+  return { ok: true, normal: row.count_normal, foil: row.count_foil };
+}
+</file>
+
+<file path="lib/collection-types.ts">
+export interface OwnedCounts {
+  normal: number;
+  foil: number;
+}
+</file>
+
+<file path="lib/collection.ts">
+import "server-only";
+import type { OwnedCounts } from "@/lib/collection-types";
+import type { UserCard } from "@/lib/supabase";
+import { cardKey, type SwuCard } from "@/lib/swu-api";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+
+export async function getOwnedCounts(
+  cards: Pick<SwuCard, "Set" | "Number">[]
+): Promise<Map<string, OwnedCounts>> {
+  const owned = new Map<string, OwnedCounts>();
+  if (cards.length === 0) return owned;
+  const sets = [...new Set(cards.map((c) => c.Set.toUpperCase()))];
+  const numbers = [...new Set(cards.map((c) => c.Number))];
+  const supabase = await createServerSupabase();
+  const { data, error } = await supabase
+    .from("user_cards")
+    .select("set_code, card_number, count_normal, count_foil")
+    .in("set_code", sets)
+    .in("card_number", numbers);
+  if (error) {
+    throw new Error(`Sammlung konnte nicht geladen werden: ${error.message}`);
+  }
+  const rows = (data ?? []) as Pick<
+    UserCard,
+    "set_code" | "card_number" | "count_normal" | "count_foil"
+  >[];
+  for (const row of rows) {
+    owned.set(cardKey(row.set_code, row.card_number), {
+      normal: row.count_normal,
+      foil: row.count_foil,
+    });
+  }
+  return owned;
+}
+
+export function ownedFor(
+  owned: Map<string, OwnedCounts>,
+  card: Pick<SwuCard, "Set" | "Number">
+): OwnedCounts {
+  return owned.get(cardKey(card.Set, card.Number)) ?? { normal: 0, foil: 0 };
+}
+</file>
+
+<file path="lib/ocr-engine-v2.ts">
+import { createWorker, PSM, type Worker } from "tesseract.js";
+
+let workerPromise: Promise<Worker> | null = null;
+
+async function initWorker(): Promise<Worker> {
+  const worker = await createWorker("eng", 1, {
+    workerPath: "/tesseract/worker.min.js",
+    corePath: "/tesseract",
+    langPath: "/tesseract/lang",
+    logger: () => {},
+  });
+
+  await worker.setParameters({
+    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/- ",
+    tessedit_pageseg_mode: PSM.SPARSE_TEXT,
+  });
+
+  return worker;
+}
+
+function getWorker(): Promise<Worker> {
+  if (!workerPromise) {
+    workerPromise = initWorker().catch((err) => {
+      workerPromise = null;
+      throw err;
+    });
+  }
+  return workerPromise;
+}
+
+/** Lädt den Worker vorab, damit der erste Scan nicht warten muss. */
+export function warmUpOcr(): void {
+  void getWorker().catch(() => {});
+}
+
+export async function recognizeCanvas(canvas: HTMLCanvasElement): Promise<string> {
+  const worker = await getWorker();
+  const { data } = await worker.recognize(canvas);
+  return data.text;
+}
+</file>
+
+<file path="lib/ocr-engine.ts">
+import { createWorker, Worker } from "tesseract.js";
+
+let workerPromise: Promise<Worker> | null = null;
+
+async function initWorker(): Promise<Worker> {
+  const worker = await createWorker("eng", 1, {
+    workerPath: "/tesseract/worker.min.js",
+    corePath: "/tesseract/tesseract-core.wasm.js",
+    logger: () => {},
+  });
+  
+  await worker.setParameters({
+    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/- ",
+  });
+
+  return worker;
+}
+
+export async function recognizeCanvas(canvas: HTMLCanvasElement): Promise<string> {
+  if (!workerPromise) {
+    workerPromise = initWorker();
+  }
+
+  const worker = await workerPromise;
+  const { data } = await worker.recognize(canvas);
+  return data.text;
+}
+</file>
+
+<file path="lib/ocr-image.ts">
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface OcrPass {
+  label: string;
+  canvas: HTMLCanvasElement;
+}
+
+export interface LoadedImage {
+  source: CanvasImageSource;
+  width: number;
+  height: number;
+  dispose: () => void;
+}
+
+const TARGET_WIDTH = 1400;
+const MAX_UPSCALE = 3;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+export function containerRectToVideoRect(
+  container: { width: number; height: number },
+  video: { width: number; height: number },
+  rect: Rect
+): Rect {
+  const scale = Math.max(container.width / video.width, container.height / video.height);
+  const offsetX = (video.width * scale - container.width) / 2;
+  const offsetY = (video.height * scale - container.height) / 2;
+  const x = clamp((rect.x + offsetX) / scale, 0, video.width - 1);
+  const y = clamp((rect.y + offsetY) / scale, 0, video.height - 1);
+  const width = clamp(rect.width / scale, 1, video.width - x);
+  const height = clamp(rect.height / scale, 1, video.height - y);
+  return { x, y, width, height };
+}
+
+function renderPass(source: CanvasImageSource, region: Rect, invert: boolean): HTMLCanvasElement {
+  const scale = Math.min(TARGET_WIDTH / region.width, MAX_UPSCALE);
+  const width = Math.max(1, Math.round(region.width * scale));
+  const height = Math.max(1, Math.round(region.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("Canvas wird nicht unterstützt.");
+
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(source, region.x, region.y, region.width, region.height, 0, 0, width, height);
+
+  const image = ctx.getImageData(0, 0, width, height);
+  const data = image.data;
+  const histogram = new Uint32Array(256);
+
+  for (let i = 0; i < data.length; i += 4) {
+    const luma = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+    data[i] = luma;
+    histogram[luma]++;
+  }
+
+  const total = width * height;
+  let low = 0;
+  let accumulated = 0;
+  for (; low < 255; low++) {
+    accumulated += histogram[low];
+    if (accumulated >= total * 0.02) break;
+  }
+  let high = 255;
+  accumulated = 0;
+  for (; high > 0; high--) {
+    accumulated += histogram[high];
+    if (accumulated >= total * 0.02) break;
+  }
+  const range = Math.max(high - low, 1);
+
+  for (let i = 0; i < data.length; i += 4) {
+    let value = clamp(((data[i] - low) * 255) / range, 0, 255);
+    if (invert) value = 255 - value;
+    data[i] = value;
+    data[i + 1] = value;
+    data[i + 2] = value;
+    data[i + 3] = 255;
+  }
+
+  ctx.putImageData(image, 0, 0);
+  return canvas;
+}
+
+export function buildCameraPasses(video: HTMLVideoElement, region: Rect): OcrPass[] {
+  return [
+    { label: "Rahmen", canvas: renderPass(video, region, false) },
+    { label: "Rahmen, invertiert", canvas: renderPass(video, region, true) },
+  ];
+}
+
+export function buildUploadPasses(source: CanvasImageSource, width: number, height: number): OcrPass[] {
+  const strip: Rect = { x: 0, y: height * 0.72, width, height: height * 0.28 };
+  const half: Rect = { x: 0, y: height * 0.5, width, height: height * 0.5 };
+  return [
+    { label: "unterer Streifen", canvas: renderPass(source, strip, false) },
+    { label: "unterer Streifen, invertiert", canvas: renderPass(source, strip, true) },
+    { label: "untere Hälfte", canvas: renderPass(source, half, false) },
+    { label: "untere Hälfte, invertiert", canvas: renderPass(source, half, true) },
+  ];
+}
+
+export async function loadImageSource(file: Blob): Promise<LoadedImage> {
+  if (typeof createImageBitmap === "function") {
+    try {      const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+      return {
+        source: bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+        dispose: () => bitmap.close(),
+      };
+    } catch {
+      // Fallback
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+    await image.decode();
+    return {
+      source: image,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      dispose: () => URL.revokeObjectURL(url),
+    };
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    throw error;
+  }
+}
+</file>
+
+<file path="lib/ocr-parse.ts">
+export interface ReferenceCandidate {
+  set: string;
+  number: string;
+  text: string;
+  score: number;
+}
+
+const DIGIT_LIKE: Record<string, string> = {
+  O: "0", Q: "0", D: "0", I: "1", L: "1", S: "5", B: "8", Z: "2", G: "6",
+};
+const FOLD: Record<string, string> = { O: "0", I: "1", L: "1", S: "5", B: "8", Z: "2" };
+const MAX_NUMBER_DISTANCE = 3;
+const MAX_CANDIDATES = 5;
+
+interface Token {
+  value: string;
+  start: number;
+  end: number;
+}
+
+function foldSet(value: string): string {
+  return [...value].map((ch) => FOLD[ch] ?? ch).join("");
+}
+
+function hamming(a: string, b: string): number {
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) diff++;
+  return diff;
+}
+
+function toDigits(token: string): string | null {
+  if (!/^[0-9OQDILSBZG]{1,3}$/.test(token) || !/[0-9]/.test(token)) return null;
+  return [...token].map((ch) => DIGIT_LIKE[ch] ?? ch).join("");
+}
+
+function matchSet(token: string, known: string[]): { set: string; quality: number } | null {
+  if (token.length < 2 || token.length > 5 || !/[A-Z]/.test(token)) return null;
+  if (known.length === 0) return { set: token, quality: 0.5 };
+  if (known.includes(token)) return { set: token, quality: 3 };
+  const folded = foldSet(token);
+  const foldedMatch = known.find((k) => foldSet(k) === folded);
+  if (foldedMatch) return { set: foldedMatch, quality: 2.5 };
+  if (token.length >= 3) {
+    const near = known.filter((k) => k.length === token.length && hamming(k, token) === 1);
+    if (near.length === 1) return { set: near[0], quality: 2 };
+  }
+  return null;
+}
+
+function tokenize(text: string): Token[] {
+  return [...text.matchAll(/[A-Z0-9]+/g)].map((m) => {
+    const start = m.index ?? 0;
+    return { value: m[0], start, end: start + m[0].length };
+  });
+}
+
+function splitGlued(tokens: Token[], known: string[]): Token[] {
+  const result: Token[] = [];
+  for (const token of tokens) {
+    const m = /^([A-Z]{2,5})([0-9OILSBZ]{1,3})$/.exec(token.value);
+    const setPart = m?.[1];
+    const numPart = m?.[2];
+    if (setPart && numPart && toDigits(numPart)) {
+      const match = matchSet(setPart, known);
+      if (match && (known.length === 0 || match.quality >= 2)) {
+        const split = token.start + setPart.length;
+        result.push({ value: setPart, start: token.start, end: split });
+        result.push({ value: numPart, start: split, end: token.end });
+        continue;
+      }
+    }
+    result.push(token);
+  }
+  return result;
+}
+
+export function extractReferenceCandidates(
+  raw: string,
+  knownSets: string[] = []
+): ReferenceCandidate[] {
+  const known = knownSets.map((s) => s.toUpperCase());
+  const text = raw
+    .toUpperCase()
+    .replace(/[•·.,:;|_]/g, " ")
+    .replace(/[^A-Z0-9/\- \n]/g, " ");
+  const all = splitGlued(tokenize(text), known);
+  const totals = new Set<number>();
+  const strong = new Set<number>();
+  for (let i = 0; i + 1 < all.length; i++) {
+    const between = text.slice(all[i].end, all[i + 1].start);
+    const a = toDigits(all[i].value);
+    const b = toDigits(all[i + 1].value);
+    if (a && b && b.length >= 2 && /^\s*\/\s*$/.test(between)) {
+      strong.add(all[i].start);
+      totals.add(all[i + 1].start);
+    }
+  }
+  const core = all.filter((t) => !totals.has(t.start));
+  const best = new Map<string, ReferenceCandidate>();
+  core.forEach((numToken, i) => {
+    const digits = toDigits(numToken.value);
+    const numeric = digits ? parseInt(digits, 10) : 0;
+    if (!digits || numeric === 0) return;
+    core.forEach((setToken, j) => {
+      const distance = Math.abs(i - j);
+      if (i === j || distance > MAX_NUMBER_DISTANCE) return;
+      const match = matchSet(setToken.value, known);
+      if (!match) return;
+      if (known.length > 0 && match.quality < 2) return;
+      let score = match.quality;
+      if (distance === 1) score += 1.5;
+      else if (distance === 2) score += 0.3;
+      if (strong.has(numToken.start)) score += 1;
+      const from = Math.min(numToken.end, setToken.end);
+      const to = Math.max(numToken.start, setToken.start);
+      if (text.slice(from, to).includes("\n")) score -= 1;
+      const number = String(numeric);
+      const key = `${match.set}|${number}`;
+      const existing = best.get(key);
+      if (!existing || existing.score < score) {
+        best.set(key, { set: match.set, number, text: `${match.set} ${digits}`, score });
+      }
+    });
+  });
+  return [...best.values()].sort((a, b) => b.score - a.score).slice(0, MAX_CANDIDATES);
+}
+</file>
+
+<file path="lib/scan-actions-v3.ts">
+"use server";
+
+import { getSets, getCard, type SwuCard } from "@/lib/swu-api";
+import { extractReferenceCandidates, ReferenceCandidate } from "@/lib/ocr-parse";
+
+const OFFICIAL_SET_IDS = [
+  "SOR", "SHD", "TWI", "JTL", "LOF", "LAW", "SEC", "ASH", "HMW", "IBH", "TS26",
+];
+const MIN_SCORE = 3;
+
+export async function resolveScanRawText(rawText: string): Promise<{
+  success: boolean;
+  card?: SwuCard;
+  candidate?: ReferenceCandidate;
+  candidates?: ReferenceCandidate[];
+}> {
+  let apiSetIds: string[] = [];
+  try {
+    apiSetIds = (await getSets()).map((s) => s.setId.toUpperCase());
+  } catch {
+    // API nicht erreichbar: feste Liste reicht
+  }
+  const knownSetIds = Array.from(new Set([...apiSetIds, ...OFFICIAL_SET_IDS]));
+  const candidates = extractReferenceCandidates(rawText, knownSetIds).filter(
+    (c) => c.score >= MIN_SCORE
+  );
+
+  for (const cand of candidates) {
+    const card = await getCard(cand.set, cand.number);
+    if (card) {
+      return { success: true, card, candidate: cand };
+    }
+  }
+  return { success: false, candidates };
+}
+</file>
+
+<file path="lib/scan-actions-v4.ts">
+"use server";
+
+import { getCard, type SwuCard } from "@/lib/swu-api";
+
+export async function lookupCard(set: string, number: string): Promise<SwuCard | null> {
+  try {
+    return await getCard(set, number);
+  } catch {
+    return null;
+  }
+}
+</file>
+
+<file path="lib/scan-actions.ts">
+"use server";
+
+import { getSets, getCard, type SwuCard } from "@/lib/swu-api";
+import { extractReferenceCandidates, ReferenceCandidate } from "@/lib/ocr-parse";
+
+export async function resolveScanRawText(rawText: string): Promise<{ success: boolean; card?: SwuCard; candidate?: ReferenceCandidate; candidates?: ReferenceCandidate[] }> {
+  const sets = await getSets();
+  const knownSetIds = sets.map((s) => s.setId);
+  const candidates = extractReferenceCandidates(rawText, knownSetIds);
+
+  for (const cand of candidates) {
+    const card = await getCard(cand.set, cand.number);
+    if (card) {
+      return { success: true, card, candidate: cand };
+    }
+  }
+  return { success: false, candidates };
+}
+</file>
+
+<file path="lib/supabase-env.ts">
+export function getSupabaseEnv(): { url: string; key: string } {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "NEXT_PUBLIC_SUPABASE_URL und NEXT_PUBLIC_SUPABASE_ANON_KEY müssen in .env.local gesetzt sein."
+    );
+  }
+  return { url, key };
+}
+</file>
+
+<file path="lib/supabase-proxy.ts">
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseEnv } from "@/lib/supabase-env";
+
+/** Pfade, die ohne Login erreichbar sind. */
+const PUBLIC_PATHS = ["/login", "/register", "/auth"];
+/** Seiten, die ein eingeloggter Nutzer nicht mehr sehen soll. */
+const GUEST_ONLY_PATHS = ["/login", "/register"];
+
+function matches(pathname: string, paths: string[]): boolean {
+  return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+/** Redirect, der die (ggf. erneuerten) Session-Cookies der Response mitnimmt. */
+function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
+  const redirect = NextResponse.redirect(url);
+  from.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  return redirect;
+}
+
+export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  const { url, key } = getSupabaseEnv();
+  let response = NextResponse.next({ request });
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  // Wichtig: zwischen createServerClient und getUser() keinen Code einfügen.
+  // getUser() validiert das Token gegen Supabase und erneuert es bei Bedarf.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname, search } = request.nextUrl;
+
+  if (!user && !matches(pathname, PUBLIC_PATHS)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("next", `${pathname}${search}`);
+    }
+    return redirectWithCookies(loginUrl, response);
+  }
+
+  if (user && matches(pathname, GUEST_ONLY_PATHS)) {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    homeUrl.search = "";
+    return redirectWithCookies(homeUrl, response);
+  }
+
+  return response;
+}
+</file>
+
+<file path="lib/supabase-server-v2.ts">
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { connection } from "next/server";
+import { getSupabaseEnv } from "@/lib/supabase-env";
+
+export async function createServerSupabase() {
+  await connection();
+  const { url, key } = getSupabaseEnv();
+  const cookieStore = await cookies();
+  return createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        } catch {
+          // Unkritisch in Server Components
+        }
+      },
+    },
+  });
+}
+</file>
+
+<file path="lib/supabase.ts">
+import { createBrowserClient } from "@supabase/ssr";
+
+export interface UserCard {
+  id: string;
+  user_id: string;
+  set_code: string;
+  card_number: string;
+  count_normal: number;
+  count_foil: number;
+  created_at: string;
+}
+
+export function createClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "NEXT_PUBLIC_SUPABASE_URL und NEXT_PUBLIC_SUPABASE_ANON_KEY müssen in .env.local gesetzt sein."
+    );
+  }
+  return createBrowserClient(url, key);
+}
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="scripts/copy-tesseract-assets-v2.mjs">
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const targetDir = path.join(root, "public", "tesseract");
+const langDir = path.join(targetDir, "lang");
+fs.mkdirSync(langDir, { recursive: true });
+
+const files = [
+  ["tesseract.js/dist/worker.min.js", targetDir],
+  ["tesseract.js-core/tesseract-core-relaxedsimd-lstm.wasm.js", targetDir],
+  ["tesseract.js-core/tesseract-core-simd-lstm.wasm.js", targetDir],
+  ["tesseract.js-core/tesseract-core-lstm.wasm.js", targetDir],
+  ["@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz", langDir],
+];
+
+for (const [rel, dir] of files) {
+  const src = path.join(root, "node_modules", rel);
+  if (!fs.existsSync(src)) {
+    console.error(`Fehlt: ${src}`);
+    process.exitCode = 1;
+    continue;
+  }
+  fs.copyFileSync(src, path.join(dir, path.basename(rel)));
+}
+</file>
+
+<file path="AGENTS.md">
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  partialPrefetching: true,
+  turbopack: {
+    rules: {
+      "*.css": {
+        loaders: ["@tailwindcss/turbopack"],
+        as: "*.css",
+      },
+    },
+  },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "cdn.swu-db.com", pathname: "/**" },
+      { protocol: "https", hostname: "api.swu-db.com", pathname: "/**" },
+    ],
+  },
+};
+
+export default nextConfig;
+</file>
+
+<file path="proxy.ts">
+import type { NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase-proxy";
+
+export async function proxy(request: NextRequest) {
+  return updateSession(request);
+}
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+};
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="app/(app)/search/actions.ts">
+"use server";
+
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+import { revalidatePath } from "next/cache";
+
+export async function adjustCardCountAction(
+  setCode: string,
+  cardNumber: string,
+  deltaNormal: number,
+  deltaFoil: number
+) {
+  const supabase = await createServerSupabase();
+
+  const { error } = await supabase.rpc("adjust_card_count", {
+    p_set_code: setCode,
+    p_card_number: cardNumber,
+    p_delta_normal: deltaNormal,
+    p_delta_foil: deltaFoil,
+  });
+
+  if (error) {
+    console.error("Fehler beim Aktualisieren der Karte:", error.message);
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/search");
+  revalidatePath("/");
+}
+</file>
+
+<file path="app/(app)/page.tsx">
+import Image from "next/image";
+import Link from "next/link";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+import { getCard, cardImageUrl, cardTitle, type SwuCard } from "@/lib/swu-api";
+import { adjustCardCountAction } from "./search/actions";
+
+interface HomePageProps {
+  searchParams: Promise<{
+    q?: string;
+    set?: string;
+    type?: string;
+    sort?: string;
+  }>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const searchFilter = (typeof params.q === "string" ? params.q : "").toLowerCase().trim();
+  const setFilter = typeof params.set === "string" ? params.set : "";
+  const typeFilter = typeof params.type === "string" ? params.type : "";
+  const sortOption = typeof params.sort === "string" ? params.sort : "newest";
+
+  const supabase = await createServerSupabase();
+
+  // 1. Alle Karten des Nutzers laden
+  const { data: userCards, error } = await supabase
+    .from("user_cards")
+    .select("set_code, card_number, count_normal, count_foil, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return (
+      <section className="space-y-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Deine Sammlung</h1>
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          Fehler beim Laden der Datenbank: {error.message}
+        </p>
+      </section>
+    );
+  }
+
+  // 2. API-Details laden
+  const enrichedCards = await Promise.all(
+    (userCards ?? []).map(async (uc) => {
+      const details = await getCard(uc.set_code, uc.card_number);
+      return {
+        ...uc,
+        details,
+      };
+    })
+  );
+
+  // Verfügbare Sets und Typen für die Filter-Dropdowns ermitteln
+  const availableSets = Array.from(new Set(enrichedCards.map((c) => c.set_code))).sort();
+  const availableTypes = Array.from(
+    new Set(enrichedCards.map((c) => c.details?.Type).filter(Boolean))
+  ).sort() as string[];
+
+  // 3. Filtern (Name, Untertitel, Traits, Set, Typ)
+  const filteredCards = enrichedCards.filter((card) => {
+    // Set-Filter
+    if (setFilter && card.set_code !== setFilter) return false;
+
+    // Typ-Filter
+    if (typeFilter && card.details?.Type !== typeFilter) return false;
+
+    // Freitext- / Merkmal-Suche (Name, Subtitle, Traits, Aspects, Type)
+    if (searchFilter) {
+      const name = (card.details?.Name ?? "").toLowerCase();
+      const subtitle = (card.details?.Subtitle ?? "").toLowerCase();
+      const type = (card.details?.Type ?? "").toLowerCase();
+      const traits = (card.details?.Traits ?? []).map((t) => t.toLowerCase());
+      const aspects = (card.details?.Aspects ?? []).map((a) => a.toLowerCase());
+
+      const matchesQuery =
+        name.includes(searchFilter) ||
+        subtitle.includes(searchFilter) ||
+        type.includes(searchFilter) ||
+        traits.some((t) => t.includes(searchFilter)) ||
+        aspects.some((a) => a.includes(searchFilter));
+
+      if (!matchesQuery) return false;
+    }
+
+    return true;
+  });
+
+  // 4. Sortieren
+  filteredCards.sort((a, b) => {
+    if (sortOption === "name") {
+      const nameA = a.details ? cardTitle(a.details) : "";
+      const nameB = b.details ? cardTitle(b.details) : "";
+      return nameA.localeCompare(nameB);
+    }
+    if (sortOption === "count") {
+      const countA = a.count_normal + a.count_foil;
+      const countB = b.count_normal + b.count_foil;
+      return countB - countA; // Absteigend
+    }
+    if (sortOption === "setnumber") {
+      return a.card_number.localeCompare(b.card_number, undefined, { numeric: true });
+    }
+    // Standard: newest (Neueste zuerst)
+    return 0;
+  });
+
+  // Gesamtsumme berechnen
+  const totalCards = enrichedCards.reduce(
+    (acc, curr) => acc + curr.count_normal + curr.count_foil,
+    0
+  );
+
+  return (
+    <section className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Deine Sammlung</h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Gesamt: <strong>{totalCards}</strong> Karte(n) in {enrichedCards.length} unterschiedlichen Ausführungen
+          </p>
+        </div>
+        <Link
+          href="/search"
+          className="inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 text-center"
+        >
+          + Neue Karten suchen
+        </Link>
+      </div>
+
+      {/* Filter- & Suchleiste */}
+      <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+        {/* Freitext- / Merkmal-Suche */}
+        <input
+          type="text"
+          name="q"
+          defaultValue={searchFilter}
+          placeholder="Name, Merkmal (z.B. Sith, Rebel)..."
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100"
+        />
+
+        {/* Set-Filter */}
+        <select
+          name="set"
+          defaultValue={setFilter}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:bg-zinc-900"
+        >
+          <option value="">Alle Sets</option>
+          {availableSets.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+
+        {/* Typ-Filter */}
+        <select
+          name="type"
+          defaultValue={typeFilter}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:bg-zinc-900"
+        >
+          <option value="">Alle Typen</option>
+          {availableTypes.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+
+        {/* Sortierung */}
+        <select
+          name="sort"
+          defaultValue={sortOption}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:bg-zinc-900"
+        >
+          <option value="newest">Zuletzt hinzugefügt</option>
+          <option value="name">Name (A-Z)</option>
+          <option value="count">Höchste Anzahl</option>
+          <option value="setnumber">Kartennummer</option>
+        </select>
+
+        <div className="sm:col-span-4 flex justify-end gap-2">
+          {(searchFilter || setFilter || typeFilter || sortOption !== "newest") && (
+            <Link
+              href="/"
+              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium dark:border-zinc-700"
+            >
+              Filter zurücksetzen
+            </Link>
+          )}
+          <button
+            type="submit"
+            className="rounded-lg bg-zinc-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          >
+            Anwenden
+          </button>
+        </div>
+      </form>
+
+      {/* Ergebnis-Raster */}
+      {filteredCards.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-800">
+          <p className="text-sm text-zinc-500">Keine Karten für diese Filtereinstellungen gefunden.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {filteredCards.map((card) => {
+            const key = `${card.set_code}-${card.card_number}`;
+            const title = card.details ? cardTitle(card.details) : `${card.set_code} #${card.card_number}`;
+            const imgUrl = cardImageUrl(card.set_code, card.card_number);
+
+            return (
+              <div
+                key={key}
+                className="flex flex-col justify-between rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+              >
+                <div>
+                  <div className="relative mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900">
+                    <Image
+                      src={imgUrl}
+                      alt={title}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  </div>
+                  <h2 className="font-medium text-sm">
+                    {card.set_code} #{card.card_number} – {title}
+                  </h2>
+                  {card.details && (
+                    <div className="mt-1 space-y-1">
+                      <p className="text-xs text-zinc-500 capitalize">
+                        Typ: {card.details.Type} | Seltenheit: {card.details.Rarity}
+                      </p>
+                      {card.details.Traits && card.details.Traits.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {card.details.Traits.map((trait) => (
+                            <span
+                              key={trait}
+                              className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                            >
+                              {trait}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Zähler & Steuerung in der Sammlung */}
+                <div className="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Normal: <strong>{card.count_normal}</strong></span>
+                    <div className="flex gap-1">
+                      <form action={async () => { "use server"; await adjustCardCountAction(card.set_code, card.card_number, -1, 0); }}>
+                        <button className="rounded bg-zinc-200 px-2 py-1 text-xs font-bold hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700" disabled={card.count_normal <= 0}>-</button>
+                      </form>
+                      <form action={async () => { "use server"; await adjustCardCountAction(card.set_code, card.card_number, 1, 0); }}>
+                        <button className="rounded bg-zinc-900 px-2 py-1 text-xs font-bold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900">+</button>
+                      </form>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Foil: <strong>{card.count_foil}</strong></span>
+                    <div className="flex gap-1">
+                      <form action={async () => { "use server"; await adjustCardCountAction(card.set_code, card.card_number, 0, -1); }}>
+                        <button className="rounded bg-zinc-200 px-2 py-1 text-xs font-bold hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700" disabled={card.count_foil <= 0}>-</button>
+                      </form>
+                      <form action={async () => { "use server"; await adjustCardCountAction(card.set_code, card.card_number, 0, 1); }}>
+                        <button className="rounded bg-zinc-900 px-2 py-1 text-xs font-bold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900">+</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+</file>
+
+<file path="app/auth/callback/route.ts">
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+
+/**
+ * Ziel des Bestätigungslinks aus der Registrierungs-Mail.
+ * Tauscht den ?code gegen eine Session (PKCE).
+ */
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = request.nextUrl;
+  const code = searchParams.get("code");
+
+  if (code) {
+    const supabase = await createServerSupabase();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      return NextResponse.redirect(new URL("/", origin));
+    }
+  }
+
+  return NextResponse.redirect(new URL("/login?error=callback_failed", origin));
+}
+</file>
+
+<file path="app/auth/actions.ts">
+"use server";
+
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+
+const MIN_PASSWORD_LENGTH = 8;
+
+/** Verhindert Open Redirects: nur interne Pfade zulassen. */
+function safeNextPath(value: FormDataEntryValue | null): string {
+  const next = typeof value === "string" ? value : "";
+  const isInternal =
+    next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\");
+  return isInternal ? next : "/";
+}
+
+/** Supabase-Fehlercode -> Schlüssel in lib/auth-messages.ts */
+function errorKey(code: string | undefined): string {
+  switch (code) {
+    case "invalid_credentials":
+      return "invalid_credentials";
+    case "email_not_confirmed":
+      return "email_not_confirmed";
+    case "user_already_exists":
+    case "email_exists":
+      return "user_exists";
+    case "weak_password":
+      return "weak_password";
+    case "over_request_rate_limit":
+    case "over_email_send_rate_limit":
+      return "rate_limited";
+    default:
+      return "unknown";
+  }
+}
+
+export async function login(formData: FormData): Promise<void> {
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const next = safeNextPath(formData.get("next"));
+
+  const fail = (error: string): never =>
+    redirect(`/login?${new URLSearchParams({ error, next })}`);
+
+  if (!email || !password) fail("missing_fields");
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) fail(errorKey(error.code));
+
+  redirect(next);
+}
+
+export async function register(formData: FormData): Promise<void> {
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  const fail = (error: string): never =>
+    redirect(`/register?${new URLSearchParams({ error })}`);
+
+  if (!email || !password) fail("missing_fields");
+  if (password.length < MIN_PASSWORD_LENGTH) fail("password_short");
+  if (password !== confirm) fail("password_mismatch");
+
+  const origin =
+    (await headers()).get("origin") ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "http://localhost:3000";
+
+  const supabase = await createServerSupabase();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${origin}/auth/callback` },
+  });
+
+  if (error) {
+    console.log("=== SUPABASE FEHLER ===");
+    console.log("Message:", error.message);
+    console.log("Code:", error.code);
+    console.log("======================");
+    fail(errorKey(error.code));
+  }
+
+  // Mit deaktivierter E-Mail-Bestätigung kommt direkt eine Session zurück.
+  if (data.session) redirect("/");
+
+  redirect(`/login?${new URLSearchParams({ message: "confirm_email" })}`);
+}
+
+export async function logout(): Promise<void> {
+  const supabase = await createServerSupabase();
+  await supabase.auth.signOut();
+  redirect("/login");
+}
+</file>
+
+<file path="app/globals.css">
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+
+  body {
+    background-color: #0b0f17;
+    color: #f3f4f6;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    min-height: 100vh;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0f17;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+/public/tesseract/
+</file>
+
+<file path="README.md">
+<<<<<<< HEAD
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+=======
+# swu-collection
+>>>>>>> 0c4d64a67920903626e02845d1a30963e26deddb
+</file>
+
+<file path="app/(app)/search/page.tsx">
+import Image from "next/image";
+import { searchByInput, cardImageUrl, cardTitle, getSets, type SwuCard, type SwuSet } from "@/lib/swu-api";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+import { adjustCardCountAction } from "./actions";
+
+interface SearchPageProps {
+  searchParams: Promise<{
+    q?: string;
+    set?: string;
+    type?: string;
+  }>;
+}
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const params = await searchParams;
+  const query = typeof params.q === "string" ? params.q : "";
+  const setFilter = typeof params.set === "string" ? params.set : "";
+  const typeFilter = typeof params.type === "string" ? params.type : "";
+
+  // 1. Karten über SWU-DB API suchen
+  let cards: SwuCard[] = [];
+  if (query || setFilter) {
+    try {
+      // Wenn eine Suchanfrage da ist, nutze sie, sonst leeres Suchwort
+      cards = await searchByInput(query || (setFilter ? `${setFilter}` : ""));
+    } catch {
+      cards = [];
+    }
+  }
+
+  // 2. Verfügbare Sets für das Filter-Dropdown laden
+  let sets: SwuSet[] = [];
+  try {
+    sets = await getSets();
+  } catch {
+    sets = [];
+  }
+
+  // 3. Nach Set & Typ filtern
+  if (setFilter) {
+    cards = cards.filter((c) => c.Set.toUpperCase() === setFilter.toUpperCase());
+  }
+  if (typeFilter) {
+    cards = cards.filter((c) => c.Type.toLowerCase() === typeFilter.toLowerCase());
+  }
+
+  // 4. Aktuelle Sammlung des Nutzers laden, um Bestände anzuzeigen
+  const supabase = await createServerSupabase();
+  const { data: userCards } = await supabase
+    .from("user_cards")
+    .select("set_code, card_number, count_normal, count_foil");
+
+  const collectionMap = new Map<string, { normal: number; foil: number }>();
+  userCards?.forEach((uc) => {
+    collectionMap.set(`${uc.set_code}-${uc.card_number}`, {
+      normal: uc.count_normal,
+      foil: uc.count_foil,
+    });
+  });
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Karten suchen & hinzufügen</h1>
+
+      {/* Such- & Filterformular */}
+      <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+        <input
+          type="text"
+          name="q"
+          defaultValue={query}
+          placeholder="Name oder Set/Nummer (z.B. sor 10, Vader)..."
+          className="sm:col-span-2 rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100"
+        />
+
+        {/* Set-Filter */}
+        <select
+          name="set"
+          defaultValue={setFilter}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:bg-zinc-900"
+        >
+          <option value="">Alle Sets</option>
+          {sets.map((s) => (
+            <option key={s.setId} value={s.setId}>
+              {s.setId} – {s.fullName}
+            </option>
+          ))}
+        </select>
+
+        {/* Typ-Filter */}
+        <select
+          name="type"
+          defaultValue={typeFilter}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:bg-zinc-900"
+        >
+          <option value="">Alle Typen</option>
+          <option value="Leader">Leader</option>
+          <option value="Base">Base</option>
+          <option value="Unit">Unit</option>
+          <option value="Event">Event</option>
+          <option value="Upgrade">Upgrade</option>
+        </select>
+
+        <div className="sm:col-span-4 flex justify-end">
+          <button
+            type="submit"
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          >
+            Suchen / Filtern
+          </button>
+        </div>
+      </form>
+
+      {/* Ergebnis-Anzeige */}
+      {(query || setFilter || typeFilter) && (
+        <p className="text-sm text-zinc-500">
+          {cards.length === 0
+            ? "Keine Karten gefunden."
+            : `${cards.length} Karte(n) gefunden:`}
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        {cards.map((card) => {
+          const key = `${card.Set}-${card.Number}`;
+          const counts = collectionMap.get(key) ?? { normal: 0, foil: 0 };
+          const imgUrl = cardImageUrl(card.Set, card.Number);
+
+          return (
+            <div
+              key={key}
+              className="flex flex-col justify-between rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+            >
+              <div>
+                <div className="relative mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900">
+                  <Image
+                    src={imgUrl}
+                    alt={cardTitle(card)}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                </div>
+                <h2 className="font-medium text-sm">
+                  {card.Set} #{card.Number} – {cardTitle(card)}
+                </h2>
+                <p className="text-xs text-zinc-500 capitalize">
+                  Typ: {card.Type} | Seltenheit: {card.Rarity}
+                </p>
+              </div>
+
+              {/* Zähler & Steuerung */}
+              <div className="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Normal: <strong>{counts.normal}</strong></span>
+                  <div className="flex gap-1">
+                    <form action={async () => { "use server"; await adjustCardCountAction(card.Set, card.Number, -1, 0); }}>
+                      <button className="rounded bg-zinc-200 px-2 py-1 text-xs font-bold hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700" disabled={counts.normal <= 0}>-</button>
+                    </form>
+                    <form action={async () => { "use server"; await adjustCardCountAction(card.Set, card.Number, 1, 0); }}>
+                      <button className="rounded bg-zinc-900 px-2 py-1 text-xs font-bold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900">+</button>
+                    </form>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-sm">
+                  <span>Foil: <strong>{counts.foil}</strong></span>
+                  <div className="flex gap-1">
+                    <form action={async () => { "use server"; await adjustCardCountAction(card.Set, card.Number, 0, -1); }}>
+                      <button className="rounded bg-zinc-200 px-2 py-1 text-xs font-bold hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700" disabled={counts.foil <= 0}>-</button>
+                    </form>
+                    <form action={async () => { "use server"; await adjustCardCountAction(card.Set, card.Number, 0, 1); }}>
+                      <button className="rounded bg-zinc-900 px-2 py-1 text-xs font-bold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900">+</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="components/ScanClient.tsx">
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { recognizeCanvas, warmUpOcr } from "@/lib/ocr-engine-v2";
+import { buildCameraPasses, buildUploadPasses, loadImageSource } from "@/lib/ocr-image";
+import { resolveScanRawText } from "@/lib/scan-actions";
+import { CardTile } from "@/components/CardTile";
+import type { OwnedCounts } from "@/lib/collection-types";
+import type { SwuCard } from "@/lib/swu-api";
+
+export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts> }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [scanning, setScanning] = useState(false);
+  const [statusText, setStatusText] = useState("");
+  const [debugText, setDebugText] = useState("");
+  const [foundCard, setFoundCard] = useState<{ card: SwuCard; owned: OwnedCounts } | null>(null);
+  const [manualInput, setManualInput] = useState("");
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    warmUpOcr();
+    navigator.mediaDevices?.getUserMedia?.({
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    })
+      .then((s) => {
+        stream = s;
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          videoRef.current.play();
+        }
+      })
+      .catch(() => setStatusText("Kamera nicht verfügbar. Nutze Datei-Upload."));
+    return () => {
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  const handleScan = useCallback(async () => {
+    if (!videoRef.current) return;
+    setScanning(true);
+    setDebugText("");
+    setStatusText("Analysiere Bild...");
+    try {
+      const video = videoRef.current;
+      const region = {
+        x: video.videoWidth * 0.1,
+        y: video.videoHeight * 0.7,
+        width: video.videoWidth * 0.8,
+        height: video.videoHeight * 0.25,
+      };
+      const passes = buildCameraPasses(video, region);
+
+      let cardFound = false;
+      for (const pass of passes) {
+        const text = await recognizeCanvas(pass.canvas);
+        setDebugText((prev) => `${prev}[${pass.label}] ${text.trim()}\n`);
+        const res = await resolveScanRawText(text);
+        if (res.success && res.card) {
+          const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
+          setFoundCard({ card: res.card, owned: ownedMap[key] || { normal: 0, foil: 0 } });
+          cardFound = true;
+          break;
+        }
+      }
+      if (!cardFound) {
+        setStatusText("Keine Karte erkannt. Versuche es erneut.");
+      }
+    } catch {
+      setStatusText("Fehler beim Scannen.");
+    } finally {
+      setScanning(false);
+    }
+  }, [ownedMap]);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScanning(true);
+    setDebugText("");
+    setStatusText("Lese Foto...");
+    try {
+      const loaded = await loadImageSource(file);
+      const passes = buildUploadPasses(loaded.source, loaded.width, loaded.height);
+      loaded.dispose();
+
+      let cardFound = false;
+      for (const pass of passes) {
+        const text = await recognizeCanvas(pass.canvas);
+        setDebugText((prev) => `${prev}[${pass.label}] ${text.trim()}\n`);
+        const res = await resolveScanRawText(text);
+        if (res.success && res.card) {
+          const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
+          setFoundCard({ card: res.card, owned: ownedMap[key] || { normal: 0, foil: 0 } });
+          cardFound = true;
+          break;
+        }
+      }
+      if (!cardFound) setStatusText("Karte im Foto nicht erkannt.");
+    } catch {
+      setStatusText("Fehler beim Verarbeiten des Fotos.");
+    } finally {
+      setScanning(false);
+    }
+  }
+
+  async function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!manualInput.trim()) return;
+    setScanning(true);
+    const res = await resolveScanRawText(manualInput);
+    setScanning(false);
+    if (res.success && res.card) {
+      const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
+      setFoundCard({ card: res.card, owned: ownedMap[key] || { normal: 0, foil: 0 } });
+      setStatusText("");
+    } else {
+      setStatusText("Karte nicht gefunden.");
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-black">
+        <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+        <div className="absolute inset-x-8 bottom-8 h-20 rounded-lg border-2 border-dashed border-white/70 pointer-events-none flex items-center justify-center">
+          <span className="text-xs text-white/80 bg-black/50 px-2 py-1 rounded">Fußzeile hier ausrichten</span>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={handleScan}
+          disabled={scanning}
+          className="flex-1 rounded-lg bg-zinc-900 py-3 text-white font-medium hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          {scanning ? "Scan läuft..." : "Karte scannen"}
+        </button>
+        <label className="flex-1 cursor-pointer rounded-lg border border-zinc-300 py-3 text-center font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900">
+          Foto hochladen
+          <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+        </label>
+      </div>
+
+      <form onSubmit={handleManualSubmit} className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Manuell, z.B. SOR 10"
+          value={manualInput}
+          onChange={(e) => setManualInput(e.target.value)}
+          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        />
+        <button type="submit" className="rounded-lg bg-zinc-800 px-4 py-2 text-sm text-white dark:bg-zinc-200 dark:text-zinc-900">
+          Suchen
+        </button>
+      </form>
+
+      {statusText && <p className="text-sm text-zinc-600 dark:text-zinc-400">{statusText}</p>}
+
+      {debugText && (
+        <pre className="whitespace-pre-wrap text-xs text-zinc-500">{debugText}</pre>
+      )}
+
+      {foundCard && (
+        <div className="mt-6 border-t pt-4">
+          <h3 className="mb-2 text-sm font-semibold">Gefundene Karte:</h3>
+          <CardTile card={foundCard.card} owned={foundCard.owned} />
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="lib/swu-api.ts">
+/** Wrapper für die SWU-DB API (https://www.swu-db.com/api)
+ * Endpunkte:
+ *   GET /cards/{set}/{number}   -> einzelne Karte (Objekt)
+ *   GET /cards/{set}            -> alle Karten eines Sets
+ *   GET /cards/search?q=...     -> { total_cards, data: Card[] }
+ *   GET /sets                   -> Set-Liste
+ */
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_SWU_API_BASE ?? "https://api.swu-db.com"
+).replace(/\/+$/, "");
+
+const REQUEST_TIMEOUT_MS = 10_000;
+
+// ---------------------------------------------------------------------------
+// Typen (Felder wie von der API geliefert; viele sind optional)
+// ---------------------------------------------------------------------------
+
+export interface SwuCard {
+  Set: string; // "SOR"
+  Number: string; // "010" oder "82" – NICHT einheitlich gepaddet
+  Name: string;
+  Subtitle?: string;
+  Type: string; // Leader, Unit, Event, Upgrade, Base, ...
+  Aspects: string[];
+  Traits: string[];
+  Arenas?: string[];
+  Cost?: string;
+  Power?: string;
+  HP?: string;
+  FrontText?: string;
+  BackText?: string;
+  EpicAction?: string;
+  DoubleSided: boolean;
+  Rarity: string;
+  Unique: boolean;
+  Keywords?: string[];
+  Artist?: string;
+  VariantType: string; // "Normal", ...
+  MarketPrice?: string;
+  FoilPrice?: string;
+  LowPrice?: string;
+  LowFoilPrice?: string;
+  FrontArt: string; // https://cdn.swu-db.com/images/cards/SOR/010.png
+  BackArt?: string;
+  cid?: string;
+  tcgplayerId?: string;
+}
+
+export interface SwuSet {
+  setId: string;
+  fullName: string;
+  numberCards: number;
+  maxElement: string;
+  releaseDate: string;
+}
+
+interface SearchResponse {
+  total_cards: number;
+  data: SwuCard[];
+}
+
+export class SwuApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status?: number
+  ) {
+    super(message);
+    this.name = "SwuApiError";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// HTTP-Basis
+// ---------------------------------------------------------------------------
+
+/** Liefert null bei 404 (nicht gefunden / keine Treffer), wirft sonst bei Fehlern. */
+async function request<T>(
+  path: string,
+  params?: Record<string, string>,
+  revalidateSeconds = 3600
+): Promise<T | null> {
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}${qs}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      next: { revalidate: revalidateSeconds },
+    });
+  } catch {
+    throw new SwuApiError("SWU-DB ist nicht erreichbar.");
+  }
+
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new SwuApiError(`SWU-DB Fehler (HTTP ${res.status}).`, res.status);
+  }
+
+  try {
+    return (await res.json()) as T;
+  } catch {
+    throw new SwuApiError("Ungültige Antwort der SWU-DB.", res.status);
+  }
+}
+
+function extractCards(payload: SearchResponse | SwuCard[] | null): SwuCard[] {
+  if (!payload) return [];
+  return Array.isArray(payload) ? payload : (payload.data ?? []);
+}
+
+// ---------------------------------------------------------------------------
+// API-Funktionen
+// ---------------------------------------------------------------------------
+
+/** Einzelne Karte per Set + Nummer. "sor"/"SOR" und "10"/"010" funktionieren. */
+export async function getCard(
+  set: string,
+  number: string
+): Promise<SwuCard | null> {
+  return request<SwuCard>(
+    `/cards/${encodeURIComponent(set.toLowerCase())}/${encodeURIComponent(number)}`
+  );
+}
+
+/** Alle Basis-Karten eines Sets. */
+export async function getSetCards(set: string): Promise<SwuCard[]> {
+  const payload = await request<SearchResponse | SwuCard[]>(
+    `/cards/${encodeURIComponent(set.toLowerCase())}`,
+    { order: "setnumber" },
+    86_400
+  );
+  return extractCards(payload);
+}
+
+/** Freitext-/Syntax-Suche (https://www.swu-db.com/syntax). Bare Words suchen im Namen. */
+export async function searchCards(query: string): Promise<SwuCard[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const payload = await request<SearchResponse>("/cards/search", {
+    q,
+    order: "name",
+  });
+  return extractCards(payload);
+}
+
+/** Nur die offiziellen Star Wars: Unlimited Haupt-Sets erlauben. */
+export async function getSets(): Promise<SwuSet[]> {
+  const payload = await request<SwuSet[]>("/sets", undefined, 86_400);
+  if (!payload) return [];
+
+  const officialMainSets = [
+    "SOR", // Spark of Rebellion
+    "SHD", // Shadows of the Galaxy
+    "TWI", // Twilight of the Republic
+    "JTL", // Jump To Lightspeed
+    "LOF", // Legends of the Force
+    "LAW", // A Lawless Time
+    "SEC", // Secrets of Power
+    "ASH", // Ashes of the Empire
+    "HMW", // Homeworlds
+    "IBH", // Intro Battle: Hoth
+    "TS26", // Twin Suns 2026
+  ];
+
+  return payload.filter((set) => officialMainSets.includes(set.setId.toUpperCase()));
+}
+
+// ---------------------------------------------------------------------------
+// Sucheingabe: "sor 10", "SOR-010", "sor/10" -> Direktabruf, sonst Namens-/Syntaxsuche
+// ---------------------------------------------------------------------------
+
+const CARD_REF = /^([a-z][a-z0-9]{1,4})\s*[-/#\s]\s*(\d{1,3})$/i;
+
+export function parseCardReference(
+  input: string
+): { set: string; number: string } | null {
+  const m = CARD_REF.exec(input.trim());
+  return m ? { set: m[1], number: m[2] } : null;
+}
+
+/** Zentrale Suchfunktion für die Suchleiste. */
+export async function searchByInput(input: string): Promise<SwuCard[]> {
+  const trimmed = input.trim();
+  if (!trimmed) return [];
+
+  const ref = parseCardReference(trimmed);
+  if (ref) {
+    const card = await getCard(ref.set, ref.number);
+    if (card) return [card];
+  }
+
+  return searchCards(trimmed);
+}
+
+// ---------------------------------------------------------------------------
+// Helfer
+// ---------------------------------------------------------------------------
+
+export function cardKey(set: string, number: string): string {
+  return `${set.toUpperCase()}-${number.replace(/^0+(?=\d)/, "")}`;
+}
+
+export function cardTitle(card: Pick<SwuCard, "Name" | "Subtitle">): string {
+  return card.Subtitle ? `${card.Name} – ${card.Subtitle}` : card.Name;
+}
+
+export function cardImageUrl(
+  set: string,
+  number: string,
+  face: "front" | "back" = "front"
+): string {
+  const base = `${BASE_URL}/cards/${encodeURIComponent(set.toLowerCase())}/${encodeURIComponent(number)}?format=image`;
+  return face === "back" ? `${base}&face=back` : base;
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "swu-collection",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/copy-tesseract-assets-v2.mjs",
+    "prebuild": "node scripts/copy-tesseract-assets-v2.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "next": "16.4.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="app/(app)/layout.tsx">
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { createServerSupabase } from "@/lib/supabase-server-v2";
+import { NavBar } from "@/components/NavBar-v2";
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <AuthShell>{children}</AuthShell>
+    </Suspense>
+  );
+}
+
+async function AuthShell({ children }: { children: React.ReactNode }) {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <NavBar email={user.email ?? ""} />
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4">{children}</main>
+    </div>
+  );
+}
+</file>
+
+<file path="app/(app)/scan/page.tsx">
+import { Suspense } from "react";
+import { ScanClient } from "@/components/ScanClient-v3";
+
+export default function ScanPage() {
+  return (
+    <section className="space-y-4 max-w-md mx-auto">
+      <h1 className="text-2xl font-semibold tracking-tight">Karten-Scanner</h1>
+      <Suspense fallback={<p className="text-sm text-zinc-500">Lade Scanner...</p>}>
+        <ScanClient ownedMap={{}} />
+      </Suspense>
+    </section>
+  );
+}
+</file>
+
+</files>
