@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { ScanClient } from "@/components/ScanClient";
 
 export default function ScanPage() {
