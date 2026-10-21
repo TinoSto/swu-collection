@@ -1,12 +1,17 @@
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server-v2";
 import { NavBar } from "@/components/NavBar-v2";
-import { redirect } from "next/navigation";
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <AuthShell>{children}</AuthShell>
+    </Suspense>
+  );
+}
+
+async function AuthShell({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabase();
   const {
     data: { user },
