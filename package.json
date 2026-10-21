@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/copy-tesseract-assets.mjs",
-    "prebuild": "node scripts/copy-tesseract-assets.mjs",
+    "predev": "node scripts/copy-tesseract-assets-v2.mjs",
+    "prebuild": "node scripts/copy-tesseract-assets-v2.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

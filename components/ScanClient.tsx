@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { recognizeCanvas } from "@/lib/ocr-engine";
+import { recognizeCanvas, warmUpOcr } from "@/lib/ocr-engine-v2";
 import { buildCameraPasses, buildUploadPasses, loadImageSource } from "@/lib/ocr-image";
 import { resolveScanRawText } from "@/lib/scan-actions";
 import { CardTile } from "@/components/CardTile";
@@ -12,12 +12,20 @@ export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts>
   const videoRef = useRef<HTMLVideoElement>(null);
   const [scanning, setScanning] = useState(false);
   const [statusText, setStatusText] = useState("");
+  const [debugText, setDebugText] = useState("");
   const [foundCard, setFoundCard] = useState<{ card: SwuCard; owned: OwnedCounts } | null>(null);
   const [manualInput, setManualInput] = useState("");
 
   useEffect(() => {
     let stream: MediaStream | null = null;
-    navigator.mediaDevices?.getUserMedia?.({ video: { facingMode: "environment" } })
+    warmUpOcr();
+    navigator.mediaDevices?.getUserMedia?.({
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    })
       .then((s) => {
         stream = s;
         if (videoRef.current) {
@@ -34,6 +42,7 @@ export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts>
   const handleScan = useCallback(async () => {
     if (!videoRef.current) return;
     setScanning(true);
+    setDebugText("");
     setStatusText("Analysiere Bild...");
     try {
       const video = videoRef.current;
@@ -48,6 +57,7 @@ export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts>
       let cardFound = false;
       for (const pass of passes) {
         const text = await recognizeCanvas(pass.canvas);
+        setDebugText((prev) => `${prev}[${pass.label}] ${text.trim()}\n`);
         const res = await resolveScanRawText(text);
         if (res.success && res.card) {
           const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
@@ -70,6 +80,7 @@ export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts>
     const file = e.target.files?.[0];
     if (!file) return;
     setScanning(true);
+    setDebugText("");
     setStatusText("Lese Foto...");
     try {
       const loaded = await loadImageSource(file);
@@ -79,6 +90,7 @@ export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts>
       let cardFound = false;
       for (const pass of passes) {
         const text = await recognizeCanvas(pass.canvas);
+        setDebugText((prev) => `${prev}[${pass.label}] ${text.trim()}\n`);
         const res = await resolveScanRawText(text);
         if (res.success && res.card) {
           const key = `${res.card.Set}-${res.card.Number}`.toUpperCase();
@@ -148,6 +160,10 @@ export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts>
       </form>
 
       {statusText && <p className="text-sm text-zinc-600 dark:text-zinc-400">{statusText}</p>}
+
+      {debugText && (
+        <pre className="whitespace-pre-wrap text-xs text-zinc-500">{debugText}</pre>
+      )}
 
       {foundCard && (
         <div className="mt-6 border-t pt-4">
