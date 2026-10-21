@@ -25,7 +25,7 @@ export function ScanClient({ ownedMap }: { ownedMap: Record<string, OwnedCounts>
           videoRef.current.play();
         }
       })
-      .catch(() => setStatusTest("Kamera nicht verfügbar. Nutze Datei-Upload."));
+      .catch(() => setStatusText("Kamera nicht verfügbar. Nutze Datei-Upload."));
     return () => {
       stream?.getTracks().forEach((t) => t.stop());
     };
