@@ -1,13 +1,22 @@
 import { Suspense } from "react";
-import { ScanClient } from "@/components/ScanClient";
+// Importiere hier deine bisherigen Komponenten/Logiken für die Startseite
 
-export default function ScanPage() {
+export default function Page() {
   return (
-    <section className="space-y-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-semibold tracking-tight">Karten-Scanner</h1>
-      <Suspense fallback={<p className="text-sm text-zinc-500">Lade Scanner...</p>}>
-        <ScanClient ownedMap={{}} />
+    <section className="space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Meine Sammlung</h1>
+      <Suspense fallback={<p className="text-sm text-zinc-500">Lade Sammlung...</p>}>
+        <CollectionContent />
       </Suspense>
     </section>
+  );
+}
+
+async function CollectionContent() {
+  // Verschiebe hierher den Code, der Supabase / Cookies / getOwnedCounts aufruft
+  return (
+    <div>
+      {/* Deine Sammlungs-Ansicht */}
+    </div>
   );
 }
