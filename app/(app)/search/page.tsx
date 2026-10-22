@@ -8,6 +8,7 @@ interface SearchPageProps {
     q?: string;
     set?: string;
     type?: string;
+    aspect?: string;
   }>;
 }
 
@@ -16,6 +17,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = typeof params.q === "string" ? params.q : "";
   const setFilter = typeof params.set === "string" ? params.set : "";
   const typeFilter = typeof params.type === "string" ? params.type : "";
+  const aspectFilter = typeof params.aspect === "string" ? params.aspect : "";
 
   // 1. Karten über SWU-DB API suchen
     let cards: SwuCard[] = [];
@@ -46,6 +48,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   if (typeFilter) {
     cards = cards.filter((c) => c.Type.toLowerCase() === typeFilter.toLowerCase());
   }
+  if (aspectFilter) {
+    cards = cards.filter((c) =>
+      (c.Aspects ?? []).some((a) => a.toLowerCase() === aspectFilter.toLowerCase())
+    );
+  }
 
   // 4. Aktuelle Sammlung des Nutzers laden, um Bestände anzuzeigen
   const supabase = await createServerSupabase();
@@ -66,7 +73,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <h1 className="text-2xl font-semibold tracking-tight">Karten suchen & hinzufügen</h1>
 
       {/* Such- & Filterformular */}
-      <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+      <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-5">>
         <input
           type="text"
           name="q"
@@ -94,6 +101,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           name="type"
           defaultValue={typeFilter}
           className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:bg-zinc-900"
+        
         >
           <option value="">Alle Typen</option>
           <option value="Leader">Leader</option>
@@ -102,8 +110,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <option value="Event">Event</option>
           <option value="Upgrade">Upgrade</option>
         </select>
+        {/* Aspekt-Filter */}
+        <select
+          name="aspect"
+          defaultValue={aspectFilter}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-zinc-900 dark:border-zinc-700 dark:focus-visible:border-zinc-100 dark:bg-zinc-900"
+        >
+          <option value="">Alle Aspekte</option>
+          <option value="Heroism">Heldentum</option>
+          <option value="Villainy">Schurkentum</option>
+          <option value="Vigilance">Wachsamkeit</option>
+          <option value="Command">Befehl</option>
+          <option value="Aggression">Aggression</option>
+          <option value="Cunning">Gerissenheit</option>
+        </select>
 
-        <div className="sm:col-span-4 flex justify-end">
+       <div className="sm:col-span-5 flex justify-end">
           <button
             type="submit"
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
@@ -114,7 +136,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </form>
 
       {/* Ergebnis-Anzeige */}
-      {(query || setFilter || typeFilter) && (
+      {(query || setFilter || typeFilter || aspectFilter) && (
         <p className="text-sm text-zinc-500">
           {cards.length === 0
             ? "Keine Karten gefunden."
