@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { searchByInput, cardImageUrl, cardTitle, getSets, type SwuCard, type SwuSet } from "@/lib/swu-api";
+import { searchByInput, getSetCards, cardImageUrl, cardTitle, getSets, type SwuCard, type SwuSet } from "@/lib/swu-api";
 import { createServerSupabase } from "@/lib/supabase-server-v2";
 import { adjustCardCountAction } from "./actions";
 
@@ -18,14 +18,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const typeFilter = typeof params.type === "string" ? params.type : "";
 
   // 1. Karten über SWU-DB API suchen
-  let cards: SwuCard[] = [];
-  if (query || setFilter) {
-    try {
-      // Wenn eine Suchanfrage da ist, nutze sie, sonst leeres Suchwort
-      cards = await searchByInput(query || (setFilter ? `${setFilter}` : ""));
-    } catch {
-      cards = [];
+    let cards: SwuCard[] = [];
+  try {
+    if (query) {
+      // Suchtext vorhanden: wie bisher suchen (Set-Filter greift danach in Schritt 3)
+      cards = await searchByInput(query);
+    } else if (setFilter) {
+      // Set gewählt, Suchleiste leer: alle Karten des Sets laden
+      cards = await getSetCards(setFilter);
     }
+  } catch {
+    cards = [];
   }
 
   // 2. Verfügbare Sets für das Filter-Dropdown laden
