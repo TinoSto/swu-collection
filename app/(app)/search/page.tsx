@@ -73,7 +73,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <h1 className="text-2xl font-semibold tracking-tight">Karten suchen & hinzufügen</h1>
 
       {/* Such- & Filterformular */}
-      <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-5">>
+      <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-5">
         <input
           type="text"
           name="q"
