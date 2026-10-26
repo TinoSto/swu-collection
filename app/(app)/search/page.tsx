@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { searchByInput, getSetCards, cardImageUrl, cardTitle, getSets, type SwuCard, type SwuSet } from "@/lib/swu-api";
 import { createServerSupabase } from "@/lib/supabase-server-v2";
+import ExportButton from "@/components/ExportButton";
 import { adjustCardCountAction } from "./actions";
 
 const ASPECTS = [
@@ -83,7 +84,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Karten suchen & hinzufügen</h1>
+            <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Karten suchen & hinzufügen</h1>
+        <a
+          href="/api/export"
+          download
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+        >
+          Export (CSV)
+        </a>
+      </div>
 
       {/* Such- & Filterformular */}
       <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-4">
